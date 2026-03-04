@@ -1,0 +1,190 @@
+﻿<Window x:Class="NotepadPlusPlus.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:NotepadPlusPlus.ViewModels"
+        xmlns:behaviors="clr-namespace:NotepadPlusPlus.Behaviors"
+        Title="NotepadPlusPlus"
+        Height="650" Width="1000"
+        Closing="Window_Closing">
+
+    <Window.InputBindings>
+        <KeyBinding Key="N" Modifiers="Ctrl" Command="{Binding NewFileCommand}"/>
+        <KeyBinding Key="O" Modifiers="Ctrl" Command="{Binding OpenFileCommand}"/>
+        <KeyBinding Key="S" Modifiers="Ctrl" Command="{Binding SaveFileCommand}"/>
+        <KeyBinding Key="S" Modifiers="Ctrl+Shift" Command="{Binding SaveFileAsCommand}"/>
+        <KeyBinding Key="F" Modifiers="Ctrl" Command="{Binding ShowFindCommand}"/>
+        <KeyBinding Key="H" Modifiers="Ctrl" Command="{Binding ShowReplaceCommand}"/>
+    </Window.InputBindings>
+
+    <DockPanel>
+
+        <Menu DockPanel.Dock="Top" Background="#F0F0F0">
+            <MenuItem Header="_File">
+                <MenuItem Header="_New File"       Command="{Binding NewFileCommand}"      InputGestureText="Ctrl+N"/>
+                <MenuItem Header="_Open File..."   Command="{Binding OpenFileCommand}"     InputGestureText="Ctrl+O"/>
+                <Separator/>
+                <MenuItem Header="_Save File"      Command="{Binding SaveFileCommand}"     InputGestureText="Ctrl+S"/>
+                <MenuItem Header="Save File _As..." Command="{Binding SaveFileAsCommand}" InputGestureText="Ctrl+Shift+S"/>
+                <Separator/>
+                <MenuItem Header="Close _All Files" Command="{Binding CloseAllFilesCommand}"/>
+                <Separator/>
+                <MenuItem Header="E_xit"           Command="{Binding ExitApplicationCommand}"/>
+            </MenuItem>
+            <MenuItem Header="_Search">
+                <MenuItem Header="_Find..."        Command="{Binding ShowFindCommand}"     InputGestureText="Ctrl+F"/>
+                <MenuItem Header="_Replace..."     Command="{Binding ShowReplaceCommand}"  InputGestureText="Ctrl+H"/>
+                <Separator/>
+                <MenuItem Header="_All Tabs"     IsCheckable="True" IsChecked="{Binding IsAllTabs}"/>
+                <MenuItem Header="_Selected Tab" IsCheckable="True" IsChecked="{Binding IsSelectedTab}"/>
+            </MenuItem>
+            <MenuItem Header="_Edit">
+                <MenuItem Header="To _Uppercase"     Command="{Binding ConvertToUpperCommand}"/>
+                <MenuItem Header="To _Lowercase"     Command="{Binding ConvertToLowerCommand}"/>
+                <Separator/>
+                <MenuItem Header="Remove Empty _Lines" Command="{Binding RemoveEmptyLinesCommand}"/>
+                <MenuItem Header="_Go To Line..."    Command="{Binding GoToLineCommand}"/>
+                <Separator/>
+                <MenuItem Header="Toggle _Read Only" Command="{Binding ToggleReadOnlyCommand}"/>
+            </MenuItem>
+            <MenuItem Header="_View">
+                <MenuItem Header="_Standard"         Command="{Binding SetStandardViewCommand}"/>
+                <MenuItem Header="_Folder Explorer"  Command="{Binding SetFolderExplorerViewCommand}"/>
+                <Separator/>
+                <MenuItem Header="_Open Folder..."   Command="{Binding OpenFolderExplorerCommand}"/>
+            </MenuItem>
+            <MenuItem Header="_Help">
+                <MenuItem Header="_About" Command="{Binding ShowAboutCommand}"/>
+            </MenuItem>
+        </Menu>
+
+        <ToolBar DockPanel.Dock="Top" Background="#FAFAFA">
+            <Button Command="{Binding NewFileCommand}"     ToolTip="New File (Ctrl+N)"   Content="New"    Padding="6,2"/>
+            <Button Command="{Binding OpenFileCommand}"    ToolTip="Open File (Ctrl+O)"  Content="Open"   Padding="6,2"/>
+            <Button Command="{Binding SaveFileCommand}"    ToolTip="Save (Ctrl+S)"       Content="Save"   Padding="6,2"/>
+            <Button Command="{Binding SaveFileAsCommand}"  ToolTip="Save As"             Content="Save As" Padding="6,2"/>
+            <Separator/>
+            <Button Command="{x:Static ApplicationCommands.Copy}"  ToolTip="Copy (Ctrl+C)"  Content="Copy"  Padding="6,2"/>
+            <Button Command="{x:Static ApplicationCommands.Cut}"   ToolTip="Cut (Ctrl+X)"   Content="Cut"   Padding="6,2"/>
+            <Button Command="{x:Static ApplicationCommands.Paste}" ToolTip="Paste (Ctrl+V)" Content="Paste" Padding="6,2"/>
+            <Separator/>
+            <Button Command="{Binding ConvertToUpperCommand}" ToolTip="To Uppercase"    Content="ABC"    Padding="6,2"/>
+            <Button Command="{Binding ConvertToLowerCommand}" ToolTip="To Lowercase"    Content="abc"    Padding="6,2"/>
+            <Separator/>
+            <Button Command="{Binding ShowFindCommand}"       ToolTip="Find (Ctrl+F)"   Content="Find"   Padding="6,2"/>
+            <Button Command="{Binding ShowReplaceCommand}"    ToolTip="Replace (Ctrl+H)" Content="Replace" Padding="6,2"/>
+            <Separator/>
+            <Button Command="{Binding SetStandardViewCommand}"     ToolTip="Standard View"   Content="Std" Padding="6,2"/>
+            <Button Command="{Binding SetFolderExplorerViewCommand}" ToolTip="Folder Explorer" Content="Exp" Padding="6,2"/>
+        </ToolBar>
+
+        <DockPanel>
+
+            <Border DockPanel.Dock="Left" Width="240" BorderBrush="#CCCCCC" BorderThickness="0,0,1,0"
+                    Visibility="{Binding IsFolderExplorerVisible, Converter={StaticResource BoolToVisibilityConverter}}">
+                <DockPanel>
+                    <Border DockPanel.Dock="Top" Background="#EBEBEB" Padding="8,5">
+                        <DockPanel>
+                            <TextBlock Text="Folder Explorer" FontWeight="SemiBold" FontSize="12" VerticalAlignment="Center"/>
+                            <Button DockPanel.Dock="Right" Content="Open..."
+                                    Command="{Binding OpenFolderExplorerCommand}"
+                                    Padding="6,2" HorizontalAlignment="Right"/>
+                        </DockPanel>
+                    </Border>
+                    <TreeView ItemsSource="{Binding RootItems}"
+                              MouseDoubleClick="TreeView_MouseDoubleClick"
+                              Background="White">
+                        <TreeView.ItemContainerStyle>
+                            <Style TargetType="TreeViewItem">
+                                <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
+                                <Setter Property="Padding" Value="2,1"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsDirectory}" Value="True">
+                                        <Setter Property="ContextMenu">
+                                            <Setter.Value>
+                                                <ContextMenu DataContext="{Binding PlacementTarget.DataContext,
+                                                             RelativeSource={RelativeSource Self}}">
+                                                    <MenuItem Header="New File"    Command="{Binding NewFileCommand}"/>
+                                                    <MenuItem Header="Copy Path"   Command="{Binding CopyPathCommand}"/>
+                                                    <MenuItem Header="Copy Folder" Command="{Binding CopyFolderCommand}"/>
+                                                    <MenuItem Header="Paste Folder" Command="{Binding PasteFolderCommand}"/>
+                                                </ContextMenu>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TreeView.ItemContainerStyle>
+                        <TreeView.ItemTemplate>
+                            <HierarchicalDataTemplate DataType="{x:Type vm:FileSystemItemViewModel}"
+                                                      ItemsSource="{Binding Children}">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding IsDirectory, Converter={StaticResource BoolToVisibilityConverter}}"
+                                               Visibility="Collapsed"/>
+                                    <TextBlock>
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Text" Value="  "/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsDirectory}" Value="True">
+                                                        <Setter Property="Text" Value="▶ "/>
+                                                        <Setter Property="Foreground" Value="#E8A000"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </HierarchicalDataTemplate>
+                        </TreeView.ItemTemplate>
+                    </TreeView>
+                </DockPanel>
+            </Border>
+
+            <TabControl ItemsSource="{Binding Tabs}"
+                        SelectedItem="{Binding SelectedTab}"
+                        Background="White">
+                <TabControl.ItemTemplate>
+                    <DataTemplate DataType="{x:Type vm:FileTabViewModel}">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding Header}"
+                                       Foreground="{Binding IsModified, Converter={StaticResource BoolToColorConverter}}"
+                                       VerticalAlignment="Center"
+                                       Margin="0,0,6,0"/>
+                            <Button Content="✕"
+                                    Width="16" Height="16"
+                                    Padding="0"
+                                    FontSize="10"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    Cursor="Hand"
+                                    VerticalAlignment="Center"
+                                    Command="{Binding DataContext.CloseTabCommand,
+                                              RelativeSource={RelativeSource AncestorType=TabControl}}"
+                                    CommandParameter="{Binding}"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </TabControl.ItemTemplate>
+                <TabControl.ContentTemplate>
+                    <DataTemplate DataType="{x:Type vm:FileTabViewModel}">
+                        <TextBox Text="{Binding Content, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 AcceptsReturn="True"
+                                 AcceptsTab="True"
+                                 IsReadOnly="{Binding IsReadOnly}"
+                                 VerticalScrollBarVisibility="Auto"
+                                 HorizontalScrollBarVisibility="Auto"
+                                 FontFamily="Consolas"
+                                 FontSize="13"
+                                 TextWrapping="NoWrap"
+                                 BorderThickness="0"
+                                 behaviors:TextBoxBehavior.IsAttached="True"
+                                 behaviors:TextBoxBehavior.SelectionStart="{Binding SelectionStart, Mode=TwoWay}"
+                                 behaviors:TextBoxBehavior.SelectionLength="{Binding SelectionLength, Mode=TwoWay}"
+                                 behaviors:TextBoxBehavior.CaretIndex="{Binding CaretIndex, Mode=TwoWay}"/>
+                    </DataTemplate>
+                </TabControl.ContentTemplate>
+            </TabControl>
+
+        </DockPanel>
+    </DockPanel>
+</Window>

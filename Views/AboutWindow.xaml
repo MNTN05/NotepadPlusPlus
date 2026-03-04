@@ -1,0 +1,29 @@
+﻿<Window x:Class="NotepadPlusPlus.Views.AboutWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="About"
+        Width="360" Height="210"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"> 
+    <StackPanel Margin="24" VerticalAlignment="Center">
+        <TextBlock Text="NotepadPlusPlus — Tema WPF"
+               FontSize="15" FontWeight="Bold" Margin="0,0,0,14"/>
+        <TextBlock Margin="0,3">
+        <Run FontWeight="SemiBold" Text="Nume: "/>
+        <Run Text="{Binding StudentName, Mode=OneWay}"/>
+        </TextBlock>
+        <TextBlock Margin="0,3">
+        <Run FontWeight="SemiBold" Text="Grupa: "/>
+        <Run Text="{Binding StudentGroup, Mode=OneWay}"/>
+        </TextBlock>
+        <TextBlock Margin="0,3">
+        <Run FontWeight="SemiBold" Text="Email: "/>
+        <Run Text="{Binding StudentEmail, Mode=OneWay}"
+             Foreground="Blue"/>
+        </TextBlock>
+        <Button Content="Close" Width="90" Margin="0,18,0,0"
+            HorizontalAlignment="Center" IsDefault="True" IsCancel="True"
+            Click="Close_Click"/>
+    </StackPanel>
+</Window>
