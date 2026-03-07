@@ -168,19 +168,20 @@
                 <TabControl.ContentTemplate>
                     <DataTemplate DataType="{x:Type vm:FileTabViewModel}">
                         <TextBox Text="{Binding Content, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                 AcceptsReturn="True"
-                                 AcceptsTab="True"
-                                 IsReadOnly="{Binding IsReadOnly}"
-                                 VerticalScrollBarVisibility="Auto"
-                                 HorizontalScrollBarVisibility="Auto"
-                                 FontFamily="Consolas"
-                                 FontSize="13"
-                                 TextWrapping="NoWrap"
-                                 BorderThickness="0"
-                                 behaviors:TextBoxBehavior.IsAttached="True"
-                                 behaviors:TextBoxBehavior.SelectionStart="{Binding SelectionStart, Mode=TwoWay}"
-                                 behaviors:TextBoxBehavior.SelectionLength="{Binding SelectionLength, Mode=TwoWay}"
-                                 behaviors:TextBoxBehavior.CaretIndex="{Binding CaretIndex, Mode=TwoWay}"/>
+                             AcceptsReturn="True"
+                             AcceptsTab="True"
+                             IsReadOnly="{Binding IsReadOnly}"
+                             IsInactiveSelectionHighlightEnabled="True"
+                             VerticalScrollBarVisibility="Auto"
+                             HorizontalScrollBarVisibility="Auto"
+                             FontFamily="Consolas"
+                             FontSize="13"
+                             TextWrapping="NoWrap"
+                             BorderThickness="0"
+                             behaviors:TextBoxBehavior.IsAttached="True"
+                             behaviors:TextBoxBehavior.SelectionStart="{Binding SelectionStart, Mode=TwoWay}"
+                             behaviors:TextBoxBehavior.SelectionLength="{Binding SelectionLength, Mode=TwoWay}"
+                             behaviors:TextBoxBehavior.CaretIndex="{Binding CaretIndex, Mode=TwoWay}"/>
                     </DataTemplate>
                 </TabControl.ContentTemplate>
             </TabControl>

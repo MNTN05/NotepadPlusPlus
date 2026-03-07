@@ -186,6 +186,12 @@ namespace NotepadPlusPlus.ViewModels
         [RelayCommand]
         private void ShowFind()
         {
+            if (SelectedTab != null)
+            {
+                SelectedTab.SelectionStart = 0;
+                SelectedTab.SelectionLength = 0;
+            }
+
             FindReplaceViewModel.Mode = FindReplaceMode.Find;
             OpenFindReplaceWindow();
         }
@@ -193,6 +199,12 @@ namespace NotepadPlusPlus.ViewModels
         [RelayCommand]
         private void ShowReplace()
         {
+            if (SelectedTab != null)
+            {
+                SelectedTab.SelectionStart = 0;
+                SelectedTab.SelectionLength = 0;
+            }
+
             FindReplaceViewModel.Mode = FindReplaceMode.Replace;
             OpenFindReplaceWindow();
         }
@@ -306,6 +318,8 @@ namespace NotepadPlusPlus.ViewModels
 
         private void FindNextOccurrence(bool forward)
         {
+            _lastSearchText = FindReplaceViewModel.SearchText;
+
             if (string.IsNullOrEmpty(_lastSearchText)) return;
 
             var targets = IsAllTabs ? Tabs.ToList() : new List<FileTabViewModel> { SelectedTab };
@@ -315,54 +329,62 @@ namespace NotepadPlusPlus.ViewModels
             int startTabIndex = targets.IndexOf(SelectedTab);
             if (startTabIndex < 0) startTabIndex = 0;
 
-            if (forward)
+            for (int i = 0; i < targets.Count; i++)
             {
-                for (int t = 0; t < targets.Count; t++)
+                int currentIdx = forward
+                    ? (startTabIndex + i) % targets.Count
+                    : (startTabIndex - i + targets.Count) % targets.Count;
+
+                var tab = targets[currentIdx];
+                int searchStartInfo = 0;
+
+                if (i == 0)
                 {
-                    var tab = targets[(startTabIndex + t) % targets.Count];
-                    int searchFrom = (t == 0) ? _lastSearchPosition : 0;
+                    searchStartInfo = forward
+                        ? tab.SelectionStart + tab.SelectionLength
+                        : tab.SelectionStart;
+                }
+                else
+                {
+                    searchStartInfo = forward ? 0 : tab.Content.Length;
+                }
 
-                    int idx = tab.Content.IndexOf(_lastSearchText, searchFrom, StringComparison.OrdinalIgnoreCase);
+                int idx = -1;
 
-                    if (idx < 0 && t == 0 && searchFrom > 0)
-                        idx = tab.Content.IndexOf(_lastSearchText, 0, StringComparison.OrdinalIgnoreCase);
+                if (forward)
+                {
+                    idx = tab.Content.IndexOf(_lastSearchText, searchStartInfo, StringComparison.OrdinalIgnoreCase);
 
-                    if (idx >= 0)
+                    if (idx < 0 && i == 0 && targets.Count == 1)
                     {
-                        SelectedTab = tab;
-                        tab.Highlight(idx, _lastSearchText.Length);
-                        _lastSearchPosition = idx + _lastSearchText.Length;
-                        FindReplaceViewModel.StatusMessage = $"Match found at position {idx}.";
-                        return;
+                        idx = tab.Content.IndexOf(_lastSearchText, 0, StringComparison.OrdinalIgnoreCase);
                     }
                 }
-            }
-            else
-            {
-                for (int t = 0; t < targets.Count; t++)
+                else
                 {
-                    int tabIndex = (startTabIndex - t + targets.Count) % targets.Count;
-                    var tab = targets[tabIndex];
+                    int lengthToSearch = (i == 0) ? searchStartInfo : tab.Content.Length;
 
-                    int searchTo = (t == 0 && _lastSearchPosition > 0)
-                        ? _lastSearchPosition - 1
-                        : tab.Content.Length;
-
-                    if (searchTo <= 0) continue;
-
-                    int clampedTo = Math.Min(searchTo - 1, tab.Content.Length - 1);
-                    if (clampedTo < 0) continue;
-
-                    int idx = tab.Content.LastIndexOf(_lastSearchText, clampedTo, StringComparison.OrdinalIgnoreCase);
-
-                    if (idx >= 0)
+                    if (lengthToSearch > 0)
                     {
-                        SelectedTab = tab;
-                        tab.Highlight(idx, _lastSearchText.Length);
-                        _lastSearchPosition = idx;
-                        FindReplaceViewModel.StatusMessage = $"Match found at position {idx}.";
-                        return;
+                        int startIndex = Math.Min(lengthToSearch, tab.Content.Length);
+                        idx = tab.Content.LastIndexOf(_lastSearchText, startIndex - 1 < 0 ? 0 : startIndex - 1, StringComparison.OrdinalIgnoreCase);
                     }
+
+                    if (idx < 0 && i == 0 && targets.Count == 1)
+                    {
+                        if (tab.Content.Length > 0)
+                        {
+                            idx = tab.Content.LastIndexOf(_lastSearchText, tab.Content.Length - 1, StringComparison.OrdinalIgnoreCase);
+                        }
+                    }
+                }
+
+                if (idx >= 0)
+                {
+                    SelectedTab = tab;
+                    tab.Highlight(idx, _lastSearchText.Length);
+                    FindReplaceViewModel.StatusMessage = $"Match found at position {idx}.";
+                    return;
                 }
             }
 
